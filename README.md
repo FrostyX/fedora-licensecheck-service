@@ -1,5 +1,9 @@
 # fedora-licensecheck-service
 
+This is a proof of concept of continuously validating licenses for
+every package build in Fedora.
+
+
 ## Running
 
 ### Run from git repository

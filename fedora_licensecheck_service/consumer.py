@@ -45,10 +45,12 @@ def consume(message):
         log.exception("Exception from message: %s", message.id)
 
 
-
 def handle_message(message):
     if message.topic != "org.fedoraproject.prod.buildsys.build.state.change":
         return
+
+    # TODO Too many messages come through. We need to limit this to only started
+    # or finished builds. Possibly SRPM builds.
 
     log.info("Recognized Koji message: %s", message.id)
 
@@ -56,13 +58,7 @@ def handle_message(message):
     cloneurl, commit = url.split("git+")[1].split("#")
     reponame = cloneurl.replace("https://src.fedoraproject.org/", "")
     reponame = reponame.rsplit(".git", 1)[0]
-
-
-
     repodir = tempfile.mkdtemp()
-    # gitbaseurl = "ssh://%(user)s@pkgs.fedoraproject.org/%(repo)s"
-
-    # commands = Commands()
 
     commands = pyrpkg.Commands(
         path=repodir,
@@ -114,6 +110,8 @@ def handle_message(message):
             tar.extractall(path=repodir)
         extracted = path.rsplit(".tar.gz")[0]
 
+        # Run licensecheck, scancode-toolkit, submit the sources to a dedicated
+        # service, or do whatever you want to scan the sources
         cmd = ["licensecheck", "-r", extracted]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = proc.communicate()
